@@ -33,15 +33,6 @@ $router->post('/logar', 'AutenticacaoController@logar');
 
 
 
-$router->get('/dinossauros', 'DinossauroController@index');
-$router->get('/dinossauros/ver', 'DinossauroController@show');
-
-// Rotas Protegidas (Sugerido usar o middleware de Auth se o projeto suportar)
-$router->post('/dinossauros/cadastrar', 'DinossauroController@store');
-$router->get('/dinossauros/editar', 'DinossauroController@edit');
-$router->post('/dinossauros/atualizar', 'DinossauroController@update');
-$router->get('/dinossauros/excluir', 'DinossauroController@delete');
-
 $router->get('/teste', 'JogadorController@redirecionarTeste');
 
 

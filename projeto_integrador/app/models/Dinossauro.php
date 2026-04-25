@@ -1,54 +1,123 @@
 <?php
-namespace App\Models;
 
-use App\Core\Database;
+namespace app\models;
 
-class Dinossauro {
-    private $db;
+class Dinossauro
+{
+    private ?int $id = null;
+    private string $nome;
+    private string $especie;
+    private string $periodo;
+    private string $descricao;
+    private string $imagem;
 
-    public function __construct() {
-        $this->db = Database::getConnection();
+    
+
+    /**
+     * Get the value of id
+     */
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
-    public function listarTodos() {
-        $sql = "SELECT * FROM dinossauros ORDER BY nome ASC";
-        return $this->db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    /**
+     * Set the value of id
+     */
+    public function setId(?int $id): self
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
-    public function buscarPorId($id) {
-        $stmt = $this->db->prepare("SELECT * FROM dinossauros WHERE id = :id");
-        $stmt->execute(['id' => $id]);
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    /**
+     * Get the value of nome
+     */
+    public function getNome(): string
+    {
+        return $this->nome;
     }
 
-    // REGRA DE NEGÓCIO: Verificar se o nome já existe
-    public function nomeJaExiste($nome, $idAtual = null) {
-        $sql = "SELECT COUNT(*) FROM dinossauros WHERE nome = :nome";
-        $params = ['nome' => $nome];
+    /**
+     * Set the value of nome
+     */
+    public function setNome(string $nome): self
+    {
+        $this->nome = $nome;
 
-        if ($idAtual) {
-            $sql .= " AND id != :id";
-            $params['id'] = $idAtual;
-        }
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchColumn() > 0;
+        return $this;
     }
 
-    public function salvar($data) {
-        $stmt = $this->db->prepare("INSERT INTO dinossauros (nome, especie, periodo, dieta) VALUES (:nome, :especie, :periodo, :dieta)");
-        return $stmt->execute($data);
+    /**
+     * Get the value of especie
+     */
+    public function getEspecie(): string
+    {
+        return $this->especie;
     }
 
-    public function atualizar($id, $data) {
-        $data['id'] = $id;
-        $stmt = $this->db->prepare("UPDATE dinossauros SET nome = :nome, especie = :especie, periodo = :periodo, dieta = :dieta WHERE id = :id");
-        return $stmt->execute($data);
+    /**
+     * Set the value of especie
+     */
+    public function setEspecie(string $especie): self
+    {
+        $this->especie = $especie;
+
+        return $this;
     }
 
-    public function excluir($id) {
-        $stmt = $this->db->prepare("DELETE FROM dinossauros WHERE id = :id");
-        return $stmt->execute(['id' => $id]);
+    /**
+     * Get the value of periodo
+     */
+    public function getPeriodo(): string
+    {
+        return $this->periodo;
     }
-}
+
+    /**
+     * Set the value of periodo
+     */
+    public function setPeriodo(string $periodo): self
+    {
+        $this->periodo = $periodo;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of descricao
+     */
+    public function getDescricao(): string
+    {
+        return $this->descricao;
+    }
+
+    /**
+     * Set the value of descricao
+     */
+    public function setDescricao(string $descricao): self
+    {
+        $this->descricao = $descricao;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of imagem
+     */
+    public function getImagem(): string
+    {
+        return $this->imagem;
+    }
+
+    /**
+     * Set the value of imagem
+     */
+    public function setImagem(string $imagem): self
+    {
+        $this->imagem = $imagem;
+
+        return $this;
+    }
+    }

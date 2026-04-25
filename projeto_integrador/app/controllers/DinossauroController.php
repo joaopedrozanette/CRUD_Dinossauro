@@ -1,59 +1,120 @@
 <?php
-namespace App\Controllers;
 
-use App\Models\Dinossauro;
-use App\Core\Auth; // Classe de autenticação do seu projeto base
+namespace app\controllers;
 
-class DinossauroController {
+use app\models\Dinossauro;
+use app\repositories\DinossauroRepository;
 
-    // GET /dinossauros (Acesso Público)
-    public function index() {
-        $model = new Dinossauro();
-        $dinossauros = $model->listarTodos();
-        require '../app/Views/dinossauros/index.php';
+class DinossauroController
+{
+    private DinossauroRepository $repository;
+
+    public function __construct()
+    {
+        $this->repository = new DinossauroRepository();
+        session_start();
     }
 
-    // GET /dinossauros/ver?id=1 (Acesso Público)
-    public function show($id) {
-        $model = new Dinossauro();
-        $dino = $model->buscarPorId($id);
-        if (!$dino) die("Dinossauro não encontrado.");
-        require '../app/Views/dinossauros/show.php';
+    public function listarTodos()
+    {
+        $dinossauros = $this->repository->getDinossauros();
+        require __DIR__ . '/../views/dinossauros/listar.php';
     }
 
-    // POST /dinossauros/cadastrar (Restrito a Autenticados)
-    public function store() {
-        Auth::check(); // Bloqueia se não estiver logado
+    public function ver()
+    {
+        $id = $_GET['id'] ?? null;
 
-        $nome = trim($_POST['nome'] ?? '');
-        $especie = trim($_POST['especie'] ?? '');
-        $periodo = $_POST['periodo'] ?? '';
-        $dieta = $_POST['dieta'] ?? '';
-
-        // VALIDAÇÕES
-        if (empty($nome) || empty($especie)) {
-            die("Erro: Nome e Espécie são obrigatórios.");
+        if (!$id) {
+            die("ID inválido");
         }
 
-        $model = new Dinossauro();
-
-        // REGRA DE NEGÓCIO: Impedir duplicados
-        if ($model->nomeJaExiste($nome)) {
-            die("Erro: Um dinossauro com o nome '$nome' já está cadastrado.");
-        }
-
-        if ($model->salvar(['nome' => $nome, 'especie' => $especie, 'periodo' => $periodo, 'dieta' => $dieta])) {
-            header('Location: /dinossauros?sucesso=cadastrado');
-        }
+        $dinossauro = $this->repository->getDinossauro($id);
+        require __DIR__ . '/../views/dinossauros/visualizar.php';
     }
 
-    // DELETE /dinossauros/excluir?id=1 (Restrito a Autenticados)
-    public function delete($id) {
-        Auth::check();
-        $model = new Dinossauro();
-        $model->excluir($id);
-        header('Location: /dinossauros?sucesso=excluido');
+    public function criar()
+    {
+        $this->verificarAuth();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+            // Validação
+            if (empty($_POST['nome'])) {
+                die("Nome é obrigatório");
+            }
+
+            // Regra de negócio
+            if ($this->repository->existePorNome($_POST['nome'])) {
+                die("Dinossauro já cadastrado");
+            }
+
+            $dinossauro = new Dinossauro();
+            $dinossauro->setNome($_POST['nome']);
+            $dinossauro->setEspecie($_POST['especie']);
+            $dinossauro->setPeriodo($_POST['periodo']);
+            $dinossauro->setDescricao($_POST['descricao']);
+            $dinossauro->setImagem($_POST['imagem']);
+
+            $this->repository->saveDinossauro($dinossauro);
+
+            header("Location: /dinossauros");
+            exit;
+        }
+
+        require __DIR__ . '/../views/dinossauros/form.php';
     }
-    
-    // Obs: Métodos 'create', 'edit' e 'update' seguem a mesma lógica de proteção.
+
+    public function editar()
+    {
+        $this->verificarAuth();
+
+        $id = $_GET['id'] ?? null;
+
+        if (!$id) {
+            die("ID inválido");
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+            $dinossauro = new Dinossauro();
+            $dinossauro->setId($id);
+            $dinossauro->setNome($_POST['nome']);
+            $dinossauro->setEspecie($_POST['especie']);
+            $dinossauro->setPeriodo($_POST['periodo']);
+            $dinossauro->setDescricao($_POST['descricao']);
+            $dinossauro->setImagem($_POST['imagem']);
+
+            $this->repository->updateDinossauro($dinossauro);
+
+            header("Location: /dinossauros");
+            exit;
+        }
+
+        $dinossauro = $this->repository->getDinossauro($id);
+        require __DIR__ . '/../views/dinossauros/form.php';
+    }
+
+    public function deletar()
+    {
+        $this->verificarAuth();
+
+        $id = $_GET['id'] ?? null;
+
+        if (!$id) {
+            die("ID inválido");
+        }
+
+        $this->repository->deleteDinossauro($id);
+
+        header("Location: /dinossauros");
+    }
+
+    private function verificarAuth()
+    {
+        if (!isset($_SESSION['usuario'])) {
+            header("Location: /login");
+            exit;
+        }
+    }
 }
